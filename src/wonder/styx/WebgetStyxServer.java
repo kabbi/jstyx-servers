@@ -1,21 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package wonder.styx;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CoderResult;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,17 +18,18 @@ import uk.ac.rdg.resc.jstyx.server.StyxFileClient;
 import uk.ac.rdg.resc.jstyx.server.StyxServer;
 
 /**
- *
+ * Serves one-file fs, see 'man webget' in inferno.
+ * The protocol is mostly compatible.
  * @author zubr
  */
 public class WebgetStyxServer {
     private static class WebgetFile extends StyxFile {
         private static final String INFERNO_USER_AGENT = "Inferno-webget/1.0";
-        private static final int READ_CHUNK_SIZE = 8192;
         private Map<Long, String> results;
         
         WebgetFile() throws StyxException {
             super("webget");
+            // TODO: fix permissions
             this.setPermissions(0777);
             this.results = new HashMap<Long, String>();
         }
@@ -54,6 +43,7 @@ public class WebgetStyxServer {
             try {
                 System.out.println(request);
                 
+                // parse args
                 StringTokenizer tokenizer = new StringTokenizer(request);
                 if (tokenizer.countTokens() < 6)
                     throw new IllegalArgumentException("not enought parameters provided");
@@ -128,7 +118,7 @@ public class WebgetStyxServer {
     public static void main(String[] args) throws Exception {
         // Create the root directory
         StyxDirectory root = new StyxDirectory("/");
-        // Create a WhoAmI file and add it to the root directory
+        // Create a webget file and add it to the root directory
         root.addChild(new WebgetFile());
         // Create and start a Styx server, listening on port 9876
         new StyxServer(9876, root).start();
